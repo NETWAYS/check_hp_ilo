@@ -50,6 +50,7 @@ def get_args():
     required.add_argument('--ilo', '-i', help='ILO IP or Hostname', required=True)
     required.add_argument('--user', '-u', help='Username for ILO Access', required=True)
     required.add_argument('--password', '-p', help='Password for ILO Access', required=True)
+    required.add_argument('--port', help='TCP port for ILO Access', type=int, default=443)
     required.add_argument('--timeout', '-t', help='Timeout to connect', type=int, default=10)
 
     optional.add_argument('--exclude', '-x', help='exclude this check')
@@ -85,7 +86,7 @@ def main():
     args = get_args()
 
     try:
-        ilo = hpilo.Ilo(args.ilo, args.user, args.password, timeout=args.timeout)
+        ilo = hpilo.Ilo(args.ilo, args.user, args.password, port=args.port, timeout=args.timeout)
         powerStatus = ilo.get_host_power_status()
         health = ilo.get_embedded_health()
     except Exception:
