@@ -89,6 +89,7 @@ def main():
         ilo = hpilo.Ilo(args.ilo, args.user, args.password, port=args.port, timeout=args.timeout)
         powerStatus = ilo.get_host_power_status()
         health = ilo.get_embedded_health()
+        device = ilo.get_product_name()
     except Exception:
         exception = sys.exc_info()
         print("[CRITICAL] Could not connect to ILO:", exception[0], exception[1])
@@ -110,7 +111,7 @@ def main():
         check_output.append(f"[{status}] {check}")
 
     # Shortoutput
-    print(f"[{text_status}] Overallstatus")
+    print(f"[{text_status}] Overallstatus ({device})")
 
     # Longoutput
     for i in check_output:
