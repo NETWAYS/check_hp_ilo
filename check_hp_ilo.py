@@ -104,7 +104,7 @@ def main():
 
     for check in health["health_at_a_glance"]:
         status = health["health_at_a_glance"][check]["status"]
-        if status not in ["OK", "Redundant"] or (args.exclude and check not in args.exclude):
+        if status not in ["OK", "Redundant", "Not Installed"] or (args.exclude and check not in args.exclude):
             check_status = CRITICAL
             text_status = "CRITICAL"
         check_output.append(f"[{status}] {check}")
