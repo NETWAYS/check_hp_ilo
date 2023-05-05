@@ -44,7 +44,7 @@ UNKNOWN = 3
 try:
     import hpilo
 except ImportError as e: # pragma: no cover
-    print("[UNKNOWN] Could not load python-hpilo, please all dependencies are installed:", e)
+    print("[UNKNOWN] Could not load python-hpilo, ensure all dependencies are installed:", e)
     sys.exit(UNKNOWN)
 
 
@@ -122,9 +122,12 @@ def main(args):
     for check in health["health_at_a_glance"]:
         status = health["health_at_a_glance"][check]["status"]
         if status not in ["OK", "Redundant", "Not Installed"] or (args.exclude and check not in args.exclude):
+            # Sub-Check not OK setting global status
             check_status = CRITICAL
             text_status = "CRITICAL"
-        check_output.append(f" \\ [{status}] {check}")
+            check_output.append(f" \\ [{text_status}] {check} is {status}")
+        else:
+            check_output.append(f" \\ [OK] {check} is {status}")
 
     # Overall Status Output
     print(f"[{text_status}] Overall Status for ({device})")

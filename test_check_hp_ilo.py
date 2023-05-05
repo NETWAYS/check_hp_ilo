@@ -151,13 +151,13 @@ class MainTest(unittest.TestCase):
 
         expected = [
             mock.call('[OK] Overall Status for (ProLiant BL460c Gen8)'),
-            mock.call(' \\ [OK] bios_hardware'),
-            mock.call(' \\ [OK] fans'),
-            mock.call(' \\ [OK] memory'),
-            mock.call(' \\ [OK] network'),
-            mock.call(' \\ [OK] processor'),
-            mock.call(' \\ [OK] storage'),
-            mock.call(' \\ [OK] temperature')]
+            mock.call(' \\ [OK] bios_hardware is OK'),
+            mock.call(' \\ [OK] fans is OK'),
+            mock.call(' \\ [OK] memory is OK'),
+            mock.call(' \\ [OK] network is OK'),
+            mock.call(' \\ [OK] processor is OK'),
+            mock.call(' \\ [OK] storage is OK'),
+            mock.call(' \\ [OK] temperature is OK')]
 
         mock_print.assert_has_calls(expected)
 
@@ -178,13 +178,13 @@ class MainTest(unittest.TestCase):
         self.assertEqual(actual, expected)
 
         expected = [mock.call('[CRITICAL] Overall Status for (ProLiant BL460c Gen8)'),
-                    mock.call(' \\ [ERROR] bios_hardware'),
-                    mock.call(' \\ [EXPLODED] fans'),
-                    mock.call(' \\ [OK] memory'),
-                    mock.call(' \\ [COMPROMISED] network'),
-                    mock.call(' \\ [OK] processor'),
-                    mock.call(' \\ [OK] storage'),
-                    mock.call(' \\ [OK] temperature')]
+                    mock.call(' \\ [CRITICAL] bios_hardware is ERROR'),
+                    mock.call(' \\ [CRITICAL] fans is EXPLODED'),
+                    mock.call(' \\ [OK] memory is OK'),
+                    mock.call(' \\ [CRITICAL] network is COMPROMISED'),
+                    mock.call(' \\ [OK] processor is OK'),
+                    mock.call(' \\ [OK] storage is OK'),
+                    mock.call(' \\ [OK] temperature is OK')]
 
         mock_print.assert_has_calls(expected)
 
