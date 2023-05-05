@@ -87,15 +87,15 @@ def main():
 
     try:
         ilo = hpilo.Ilo(args.ilo, args.user, args.password, port=args.port, timeout=args.timeout)
-        powerStatus = ilo.get_host_power_status()
+        power_status = ilo.get_host_power_status()
         health = ilo.get_embedded_health()
         device = ilo.get_product_name()
     except Exception:
-        exception = sys.exc_info()
-        print("[CRITICAL] Could not connect to ILO:", exception[0], exception[1])
+        exception_exc = sys.exc_info()
+        print("[CRITICAL] Could not connect to ILO:", exception_exc[0], exception_exc[1])
         sys.exit(CRITICAL)
 
-    if powerStatus == "OFF":
+    if power_status == "OFF":
         print("[OK] System powered off")
         sys.exit(OK)
 

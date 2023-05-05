@@ -1,0 +1,12 @@
+# pylint config
+[MASTER]
+ignore-patterns=^test.*
+
+[MESSAGES CONTROL]
+disable=fixme,
+        line-too-long,
+        protected-access,
+        missing-function-docstring,
+        missing-module-docstring,
+        broad-exception-caught,
+        too-few-public-methods
