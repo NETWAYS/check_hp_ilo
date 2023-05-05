@@ -84,22 +84,22 @@ class UtilTest(unittest.TestCase):
     @mock.patch('builtins.print')
     def test_performance_line(self, mock_print):
         print_performance_line("unit/()test123", 1, 'C')
-        mock_print.assert_called_with("'unit_test123'=1C")
+        mock_print.assert_called_with("unit_test123=1C,", end='')
 
         print_performance_line("", 1, 'C')
-        mock_print.assert_called_with("''=1C")
+        mock_print.assert_called_with("=1C,", end='')
 
         print_performance_line(" Unit Test ", 1, 'C')
-        mock_print.assert_called_with("'_Unit_Test_'=1C")
+        mock_print.assert_called_with("Unit_Test=1C,", end='')
 
     @mock.patch('builtins.print')
     def test_print_perfdata(self, mock_print):
         print_perfdata(fixture_embedded_health1)
         expected = [mock.call('|', end=''),
-                    mock.call("'Virtual_Fan_usage'=22%"),
-                    mock.call("'01_Inlet_Ambient_temp'=19"),
-                    mock.call("'02_CPU_1_temp'=40"),
-                    mock.call("'present_power_reading'=65")]
+                    mock.call("Virtual_Fan_usage=22%,", end=''),
+                    mock.call("01_Inlet_Ambient_temp=19,", end=''),
+                    mock.call("02_CPU_1_temp=40,", end=''),
+                    mock.call("present_power_reading=65,", end=''),  mock.call('')]
 
         mock_print.assert_has_calls(expected)
 

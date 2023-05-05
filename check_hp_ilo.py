@@ -86,13 +86,16 @@ def print_perfdata(health):
 
     print_performance_line("present_power_reading", health['power_supply_summary']['present_power_reading'].split(" ")[0])
 
+    # Newline at the end
+    print("")
 
 def print_performance_line(label, value, uom=''):
     """
     Generate perfdata line
     """
+    label = label.strip().replace(' ', '_')
     label = re.sub(r'[^A-Za-z0-9]+', '_', label)
-    print(f"\'{label}\'={value}{uom}")
+    print(f"{label}={value}{uom},", end='')
 
 
 def main(args):
