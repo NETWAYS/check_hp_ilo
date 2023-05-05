@@ -16,9 +16,8 @@ Make sure to install `hpilo` from [python-hpilo] or [seveas on GitHub].
 ## Usage
 
 ```
-usage: check_hp_ilo.py [-h] --ilo ILO --user USER --password PASSWORD [--timeout TIMEOUT] [--exclude EXCLUDE]
-
-check ilo
+usage: check_hp_ilo.py [-h] --ilo ILO --user USER --password PASSWORD
+                       [--timeout TIMEOUT] [--exclude EXCLUDE]
 
 required arguments:
   --ilo ILO, -i ILO     ILO IP or Hostname
@@ -26,12 +25,41 @@ required arguments:
   --password PASSWORD, -p PASSWORD
                         Password for ILO Access
   --timeout TIMEOUT, -t TIMEOUT
-                        Timeout to connect
+                        Connection timeout in seconds
 
 Options:
   -h, --help            show this help message and exit
   --exclude EXCLUDE, -x EXCLUDE
                         exclude this check
+```
+
+### Examples
+
+```
+check_hp_ilo.py --ilo my.ilo.exaple \
+   --user user1 --password secret
+
+[OK] Overall Status for (ProLiant BL460c Gen8)
+ \ [OK] bios_hardware is OK
+ \ [OK] fans is OK
+ \ [OK] memory is OK
+ \ [OK] network is OK
+ \ [OK] processor is OK
+ \ [OK] storage is OK
+ \ [OK] temperature is OK
+```
+
+```
+check_hp_ilo.py --ilo my.ilo.exaple \
+   --user user1 --password secret --exclude temperature
+
+[CRITICAL] Overall Status for (ProLiant BL460c Gen8)
+ \ [CRITICAL] bios_hardware is ERROR
+ \ [CRITICAL] fans is EXPLODED
+ \ [OK] memory is OK
+ \ [CRITICAL] network is COMPROMISED
+ \ [OK] processor is OK
+ \ [OK] storage is OK
 ```
 
 ## License
