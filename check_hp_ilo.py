@@ -54,19 +54,14 @@ def commandline(args):
     """
 
     parser = argparse.ArgumentParser(description="Check for hardware health of an HP ILO system")
-    optional = parser._action_groups.pop()
-    required = parser.add_argument_group('required arguments')
 
-    required.add_argument('--ilo', '-i', help='ILO IP or Hostname', required=True)
-    required.add_argument('--user', '-u', help='Username for ILO Access', required=True)
-    required.add_argument('--password', '-p', help='Password for ILO Access', required=True)
-    required.add_argument('--port', help='TCP port for ILO Access', type=int, default=443)
-    required.add_argument('--timeout', '-t', help='Connection timeout in seconds', type=int, default=10)
-
-    optional.add_argument('--exclude', '-x', help='exclude this check')
-
-    parser._action_groups.append(optional)
-    parser._optionals.title = "Options"
+    parser.add_argument('--ilo', '-i', help='ILO IP or Hostname', required=True)
+    parser.add_argument('--user', '-u', help='Username for ILO Access', required=True)
+    parser.add_argument('--password', '-p', help='Password for ILO Access', required=True)
+    parser.add_argument('--port', help='TCP port for ILO Access', type=int, default=443)
+    parser.add_argument('--timeout', '-t', help='Connection timeout in seconds', type=int, default=10)
+    parser.add_argument('--exclude', '-x', action='append', required=False,
+                        help='Sub-checks to exclude. Can be used multiple times', default=[])
 
     return parser.parse_args(args)
 
@@ -99,6 +94,7 @@ def print_performance_line(label, value, uom=''):
 
 
 def main(args):
+    print(args)
     try:
         ilo = hpilo.Ilo(args.ilo, args.user, args.password, port=args.port, timeout=args.timeout)
     except Exception:
@@ -120,8 +116,14 @@ def main(args):
     check_output = []
 
     for check in health["health_at_a_glance"]:
+        if check in args.exclude:
+            continue
+
         status = health["health_at_a_glance"][check]["status"]
-        if status not in ["OK", "Redundant", "Not Installed"] or (args.exclude and check not in args.exclude):
+        # Check if status is Critical
+        status_is_critical = status not in ["OK", "Redundant", "Not Installed"]
+
+        if status_is_critical:
             # Sub-Check not OK setting global status
             check_status = CRITICAL
             text_status = "CRITICAL"

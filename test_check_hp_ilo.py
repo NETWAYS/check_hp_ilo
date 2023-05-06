@@ -110,8 +110,24 @@ class UtilTest(unittest.TestCase):
         self.assertEqual(actual.ilo, 'localhost')
         self.assertEqual(actual.user, 'secretuser')
         self.assertEqual(actual.password, 'secretpass')
+        self.assertEqual(actual.exclude, [])
         self.assertEqual(actual.timeout, 10)
 
+        args = ['--ilo',
+                'localhost',
+                '--user',
+                'secretuser',
+                '--password',
+                'secretpass',
+                '--exclude',
+                'foobar']
+
+        actual = commandline(args)
+        self.assertEqual(actual.ilo, 'localhost')
+        self.assertEqual(actual.user, 'secretuser')
+        self.assertEqual(actual.password, 'secretpass')
+        self.assertEqual(actual.exclude, ['foobar'])
+        self.assertEqual(actual.timeout, 10)
 
 class MainTest(unittest.TestCase):
 
@@ -171,7 +187,7 @@ class MainTest(unittest.TestCase):
         i.get_product_name.return_value = fixture_product_name1
         mock_hp.Ilo.return_value = i
 
-        args = commandline(['--ilo', 'localhost', '--user', 'secretuser', '--password', 'secretpass'])
+        args = commandline(['--ilo', 'localhost', '--user', 'secretuser', '--password', 'secretpass', '-x', 'storage'])
         actual = main(args)
 
         expected = 2
@@ -183,7 +199,6 @@ class MainTest(unittest.TestCase):
                     mock.call(' \\ [OK] memory is OK'),
                     mock.call(' \\ [CRITICAL] network is COMPROMISED'),
                     mock.call(' \\ [OK] processor is OK'),
-                    mock.call(' \\ [OK] storage is OK'),
                     mock.call(' \\ [OK] temperature is OK')]
 
         mock_print.assert_has_calls(expected)
