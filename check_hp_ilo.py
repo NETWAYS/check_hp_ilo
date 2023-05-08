@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 """
 Check for hardware health of an HP ILO system, using the XML API.
 
@@ -28,7 +29,12 @@ import argparse
 import sys
 import re
 
-# State codes for Icinga
+# Return code level
+# 0 - OK       - The plugin was able to check the service and it appeared to be functioning properly
+# 1 - WARNING  - The plugin was able to check the service, but it appeared to be above some "warning"
+#                threshold or did not appear to be working properly
+# 2 - CRITICAL - The plugin detected that either the service was not running or it was above some "critical" threshold
+# 3 - UNKNOWN  - Invalid command line arguments were supplied to the plugin or low-level failures
 OK = 0
 WARNING = 1
 CRITICAL = 2
@@ -37,32 +43,35 @@ UNKNOWN = 3
 # Try to load hpilo and fail gracefully
 try:
     import hpilo
-except ImportError as e:
-    print("[UNKNOWN] Could not load python-hpilo, please ensure its installed:", e)
+except ImportError as e: # pragma: no cover
+    print("[UNKNOWN] Could not load python-hpilo, ensure all dependencies are installed:", e)
     sys.exit(UNKNOWN)
 
 
-def get_args():
-    parser = argparse.ArgumentParser(description="check ilo")
-    optional = parser._action_groups.pop()
-    required = parser.add_argument_group('required arguments')
+def commandline(args):
+    """
+    Configure and parse command line arguments
+    """
 
-    required.add_argument('--ilo', '-i', help='ILO IP or Hostname', required=True)
-    required.add_argument('--user', '-u', help='Username for ILO Access', required=True)
-    required.add_argument('--password', '-p', help='Password for ILO Access', required=True)
-    required.add_argument('--port', help='TCP port for ILO Access', type=int, default=443)
-    required.add_argument('--timeout', '-t', help='Timeout to connect', type=int, default=10)
+    parser = argparse.ArgumentParser(description="Check for hardware health of an HP ILO system")
 
-    optional.add_argument('--exclude', '-x', help='exclude this check')
+    parser.add_argument('--ilo', '-i', help='ILO IP or Hostname', required=True)
+    parser.add_argument('--user', '-u', help='Username for ILO Access', required=True)
+    parser.add_argument('--password', '-p', help='Password for ILO Access', required=True)
+    parser.add_argument('--port', help='TCP port for ILO Access', type=int, default=443)
+    parser.add_argument('--timeout', '-t', help='Connection timeout in seconds', type=int, default=10)
+    parser.add_argument('--exclude', '-x', action='append', required=False,
+                        help='Sub-checks to exclude. Can be used multiple times', default=[])
 
-    parser._action_groups.append(optional)
-    parser._optionals.title = "Options"
-
-    return parser.parse_args()
+    return parser.parse_args(args)
 
 
 def print_perfdata(health):
-    print("|")
+    """
+    Generate perfdata from Health Output
+    """
+
+    print("|", end='')
     for fan in health["fans"]:
         print_performance_line(fan + "_usage", health['fans'][fan]['speed'][0], '%')
 
@@ -72,59 +81,73 @@ def print_perfdata(health):
 
     print_performance_line("present_power_reading", health['power_supply_summary']['present_power_reading'].split(" ")[0])
 
-
-def sane_perfdata_label(label):
-    return re.sub(r'[^A-Za-z0-9]+', '_', label)
-
+    # Newline at the end
+    print("")
 
 def print_performance_line(label, value, uom=''):
-    label = sane_perfdata_label(label)
-    print(f"\'{label}\'={value}{uom}")
+    """
+    Generate perfdata line
+    """
+    label = label.strip().replace(' ', '_')
+    label = re.sub(r'[^A-Za-z0-9]+', '_', label)
+    print(f"{label}={value}{uom},", end='')
 
 
-def main():
-    args = get_args()
-
+def main(args):
+    print(args)
     try:
         ilo = hpilo.Ilo(args.ilo, args.user, args.password, port=args.port, timeout=args.timeout)
-        powerStatus = ilo.get_host_power_status()
-        health = ilo.get_embedded_health()
     except Exception:
-        exception = sys.exc_info()
-        print("[CRITICAL] Could not connect to ILO:", exception[0], exception[1])
-        sys.exit(CRITICAL)
+        exception_exc = sys.exc_info()
+        print("[CRITICAL] Could not connect to ILO:", exception_exc[0], exception_exc[1])
+        return CRITICAL
 
-    if powerStatus == "OFF":
+    power_status = ilo.get_host_power_status()
+
+    if power_status == "OFF":
         print("[OK] System powered off")
-        sys.exit(OK)
+        return OK
+
+    health = ilo.get_embedded_health()
+    device = ilo.get_product_name()
 
     check_status = OK
     text_status = "OK"
     check_output = []
 
     for check in health["health_at_a_glance"]:
+        if check in args.exclude:
+            continue
+
         status = health["health_at_a_glance"][check]["status"]
-        if status not in ["OK", "Redundant", "Not Installed"] or (args.exclude and check not in args.exclude):
+        # Check if status is Critical
+        status_is_critical = status not in ["OK", "Redundant", "Not Installed"]
+
+        if status_is_critical:
+            # Sub-Check not OK setting global status
             check_status = CRITICAL
             text_status = "CRITICAL"
-        check_output.append(f"[{status}] {check}")
+            check_output.append(f" \\ [{text_status}] {check} is {status}")
+        else:
+            check_output.append(f" \\ [OK] {check} is {status}")
 
-    # Shortoutput
-    print(f"[{text_status}] Overallstatus")
+    # Overall Status Output
+    print(f"[{text_status}] Overall Status for ({device})")
 
-    # Longoutput
-    for i in check_output:
-        print(i)
+    # Sub-Check Output
+    for status in check_output:
+        print(status)
 
     # Perfdata
     print_perfdata(health)
 
-    sys.exit(check_status)
+    return check_status
 
 
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
     try:
-        main()
+        ARGS = commandline(sys.argv[1:])
+        sys.exit(main(ARGS))
     except Exception:
         exception = sys.exc_info()
         print("[UNKNOWN] Unexpected Python error:", exception[0], exception[1])
