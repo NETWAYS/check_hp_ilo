@@ -94,7 +94,6 @@ def print_performance_line(label, value, uom=''):
 
 
 def main(args):
-    print(args)
     try:
         ilo = hpilo.Ilo(args.ilo, args.user, args.password, port=args.port, timeout=args.timeout)
     except Exception:
