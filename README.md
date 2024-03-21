@@ -1,3 +1,5 @@
+This plugin will be no longer maintained. We recommend to use the [check_redfish](https://github.com/bb-Ricardo/check_redfish)
+
 # check_hp_ilo
 
 Check for hardware health of an HP ILO system, using the XML API.
